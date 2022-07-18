@@ -24,7 +24,7 @@ Example Config File, Currently this uses the ID, Secret, and Token from the AWS 
 {
   "Accounts": [
     {
-      "Name": "DevTest- 8557",
+      "Name": "DevTest- 1234",
       "FriendlyName": "DevTest",
       "Account": "",
       "AWS_ID":"" ,
@@ -33,7 +33,7 @@ Example Config File, Currently this uses the ID, Secret, and Token from the AWS 
       "Regions": ["us-east-1", "us-east-2", "eu-central-1", "af-south-1", "ap-southeast-1"]
     },
     {
-      "Name": "Production - 5858",
+      "Name": "Production - 4321",
       "FriendlyName": "Production",
       "Account": "",
       "AWS_ID":"" ,
@@ -42,7 +42,7 @@ Example Config File, Currently this uses the ID, Secret, and Token from the AWS 
       "Regions": ["us-east-1", "us-east-2", "eu-central-1", "af-south-1", "ap-southeast-1"]
     },
     {
-      "Name": "Shared Services - 7627",
+      "Name": "Shared Services - 6789",
       "FriendlyName": "Shared Services",
       "Account": "",
       "AWS_ID":"" ,
@@ -64,6 +64,8 @@ Options:
   -i, --instance <string>  Instance
   -n, --name <string>      Server Name
   -d, --detailed           Display Instance Information in Console
+  -vol --volumes           Display Volume information
+  -sg, --securitygroups    Display Security Group Info
   -h, --help               display help for command
   ```
 
