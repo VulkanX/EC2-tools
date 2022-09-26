@@ -2,7 +2,7 @@
 const fs = require('fs');
 
 //Load 3rd party modules
-const { EC2Client, DescribeInstancesCommand, DescribeInstanceAttributeCommand, Instance } = require('@aws-sdk/client-ec2');
+const { EC2Client, DescribeInstancesCommand, DescribeInstanceAttributeCommand } = require('@aws-sdk/client-ec2');
 
 //Load Scanner Configuration
 const config = require('./scan.config.json');
@@ -12,7 +12,7 @@ const InstanceList = [];
 
 //Scanning Status
 const scanStatus = [];
-const isScanning = true;
+let isScanning = true;
 
 //AWS DescribeInstances Command, Filter can be done here if required)
 const getManagedInstances = new DescribeInstancesCommand({
@@ -110,10 +110,7 @@ getInstances = async () => {
             blockdevices: instance.BlockDeviceMappings,
             securityGroups: instance.SecurityGroups,
             Tags: instance.Tags,
-            // userData: {
-            //   id: userdata.InstanceId,
-            //   data: userdata.UserData.Value
-            // },
+            metaData: instance.MetadataOptions,
             LastScanTime: Date.now()
           });
 
@@ -142,9 +139,8 @@ getInstances = async () => {
     }
   }
   //Store data locally in .json file
-  SaveData();
   isScanning = false;
-  statusTimer.unref();
+  SaveData();
 }
 
 generateStatusInfo();
@@ -157,13 +153,13 @@ const statusTimer = setInterval(() => {
 
   if(isScanning) {
     process.stdout.moveCursor(0, -1 * (scanStatus.length + 2));
-  } else {
+  } else { 
     process.stdout.write(`\n Scan Completed`);
     process.stdout.write(`\n ${InstanceList.length} Instances found`);
-    process.stdout.write(`\n Scan Results saved to instancelist.json`);
+    process.stdout.write(`\n Scan Results saved to instancelist.json!`);
+    statusTimer.unref();
   }
-  
-}, 1000);
+}, 500);
 
 
 //Pull all regions within config for all accounts
