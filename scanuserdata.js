@@ -5,7 +5,7 @@ const fs = require('fs');
 const { program } = require('commander');
 
 // Internal Data
-const instances = require('./instancelist.json');
+const instances = require('./awsdata.json');
 
 // Configur program
 program

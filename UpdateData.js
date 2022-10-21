@@ -2,7 +2,7 @@
 const fs = require('fs');
 
 //Load 3rd party modules
-const { EC2Client, DescribeInstancesCommand, DescribeInstanceAttributeCommand } = require('@aws-sdk/client-ec2');
+const { EC2Client, DescribeInstancesCommand, DescribeInstanceAttributeCommand, DescribeVolumesCommand } = require('@aws-sdk/client-ec2');
 
 //Load Scanner Configuration
 const config = require('./scan.config.json');
@@ -20,9 +20,9 @@ const getManagedInstances = new DescribeInstancesCommand({
 
 //Function to save Data
 SaveData = () => {
-  fs.writeFileSync('instancelist.json', JSON.stringify(InstanceList), 'utf8', (err) => {
+  fs.writeFileSync('awsdata.json', JSON.stringify(InstanceList), 'utf8', (err) => {
     if(err) { process.stderr.write(err); }
-    else { process.stdout.write('Instance list saved to instancelist.json'); }
+    else { process.stdout.write('Instance list saved to awsdata.json'); }
   });
 }
 
@@ -39,6 +39,29 @@ getUserData = async (requests) => {
       }
     })
   })
+}
+
+getVolumeData = async (requests) => {
+  return Promise.all(requests).then((data) => {
+    data[0].Volumes.forEach((volume) => {
+      console.log(JSON.stringify(volume,null,2));
+      console.log(volume);
+
+      let instanceId = volume.Attachments[0].InstanceId;
+      let InstanceIndex = InstanceList.findIndex(x => x.InstanceId === instanceId);
+      InstanceList[InstanceIndex].Volumes.push({
+        DeviceName: volume.Attachments[0].Device,
+        VolumeId: volume.VolumeId,
+        AttachTime: volume.Attachments[0].AttachTime,
+        State: volume.State,
+        Size: volume.Size,
+        VolumeType: volume.VolumeType,
+        Iops: volume.Iops,
+        Encrypted: volume.Encrypted,
+        CreationTime: volume.CreateTime
+      });
+    });
+  });
 }
 
 generateStatusInfo = () => {
@@ -81,6 +104,7 @@ getInstances = async () => {
       //Get the data from the AWS API
       const instances = await ec2.send(getManagedInstances);
       let instanceRequests = [];
+      let volumeRequests = [];
       
       //Loop through all the data using a for loop due to it being async
       //Loop through each reservation
@@ -92,13 +116,13 @@ getInstances = async () => {
 
           //Push data to the InstanceList array
           InstanceList.push({
-            Name: instance.Tags[instance.Tags.findIndex(x => x.Key === 'Name')].Value || 'No Name Tag',
+            Name: instance.Tags ? instance.Tags[instance.Tags.findIndex(x => x.Key === 'Name')].Value : instance.InstanceId,
             Account: config.Accounts[acc].FriendlyName,
             AccountID: config.Accounts[acc].Account,
             InstanceId: instance.InstanceId,
             AMI: instance.ImageId,
             AZ: instance.Placement.AvailabilityZone,
-            Platform: instance.Platform,
+            Platform: (instance.Platform === undefined) ? 'Linux' : 'Windows',
             SubNet: instance.SubnetId,
             VPC: instance.VpcId,
             IAMProfile: (instance.IamInstanceProfile ? instance.IamInstanceProfile.Arn : undefined),
@@ -107,7 +131,7 @@ getInstances = async () => {
             Ip: instance.PrivateIpAddress,
             MacAddress: instance.NetworkInterfaces.MacAddress,
             LaunchTime: instance.LaunchTime,
-            blockdevices: instance.BlockDeviceMappings,
+            Volumes: [],
             securityGroups: instance.SecurityGroups,
             Tags: instance.Tags,
             metaData: instance.MetadataOptions,
@@ -127,12 +151,29 @@ getInstances = async () => {
             await getUserData(instanceRequests);
             instanceRequests = [];
           }
+
+          // Generate the command to pull the volume data from the describevolumes API
+          const getVolumeDataCmd = new DescribeVolumesCommand({
+            Filters: [ { Name: 'attachment.instance-id', Values: [instance.InstanceId] } ]
+          });
+
+          //Get the volume data from the AWS API
+          volumeRequests.push(ec2.send(getVolumeDataCmd));
+          if(volumeRequests.length >= 99) {
+            await getVolumeData(volumeRequests);
+            volumeRequests = [];
+          }
         }
       }
       //Process all remaining requests
       if(instanceRequests.length > 0) {
         await getUserData(instanceRequests);
         instanceRequests = [];
+      }
+    
+      if(volumeRequests.length > 0) {
+        await getVolumeData(volumeRequests);
+        volumeRequests = [];
       }
       updateStatusInfo('Complete', config.Accounts[acc].Regions[region], config.Accounts[acc].FriendlyName);
 
@@ -156,7 +197,7 @@ const statusTimer = setInterval(() => {
   } else { 
     process.stdout.write(`\n Scan Completed`);
     process.stdout.write(`\n ${InstanceList.length} Instances found`);
-    process.stdout.write(`\n Scan Results saved to instancelist.json!`);
+    process.stdout.write(`\n Scan Results saved to awsdata.json!`);
     statusTimer.unref();
   }
 }, 500);

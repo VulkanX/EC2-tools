@@ -4,7 +4,7 @@ Account to pull EC2 info for multiple accounts, multiple regions based on config
 ## Tools
 ### UpdateData.js
 This uses the config file to pull data from the accounts and regions specified, it has no command line options.
-all instance data is stored in a single json file called instancelist.json
+all instance data is stored in a single json file called awsdata.json
 
 node updatedata.js
 
