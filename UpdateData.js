@@ -255,9 +255,6 @@ getInstances = async () => {
 
       //Scan for and get all Load Balancers
       let lbList = await elb.send(getLoadBalancers);
-      console.log(lbList.LoadBalancers.length);
-      console.log(lbList.LoadBalancers[0]);
-
       for(let i = 0; i < lbList.LoadBalancers.length; i++) {
         ResourceList.push({
           Resource: 'LB',
