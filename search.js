@@ -5,7 +5,7 @@ const fs = require('fs');
 const { program } = require('commander');
 
 // Internal Data
-const instances = require('./instancelist.json');
+const instances = require('./awsdata.json');
 
 // Configur program
 program
@@ -18,7 +18,7 @@ program
   .option('-s, --search <string>', 'Search', '')
   .option('-i, --instance <string>', 'Instance', undefined)
   .option('-n, --name <string>', 'Server Name', undefined)
-  .option('-d, --detailed', 'Display Instance Information in Console')
+  .option('-r, --raw', 'Display Raw JSON data', false)
   .option('-vol --volumes', 'Display Volume information')
   .option('-sg, --securitygroups', 'Display Security Group Info')
   .parse();
@@ -29,11 +29,11 @@ const options = program.opts();
 
 //Generate Header
 if (options.volumes) {
-  process.stdout.write(`Account\t AccountID\t Environment\t Managed\t AZ\t Server\t InstanceID\t Device\t VolumeID\t AttachTime\n`)
+  process.stdout.write(`Account\t AccountID\t Environment\t Managed\t AZ\t Server\t InstanceID\t Device\t VolumeID\t AttachTime\t Size\t Type\t IOPS\t \n`)
 } else if (options.securitygroups) {
   process.stdout.write(`Account\t AccountID\t Environment\t Managed\t AZ\t Server\t InstanceID\t VPC\t SG Name\t SG ID\n`)
-} else if (options.detailed) {
-  process.stdout.write(`Scanning ${instances.length} instances`);
+} else if (options.raw) {
+
 } else {
   process.stdout.write(`Account\t AccountID\t Environment\t Managed\t AZ\t Server\t InstanceID\t IP\t Platform\t InstanceType\n`)
 }
@@ -43,30 +43,34 @@ let results = [];
 //Search Instance data
 instances.forEach(instance => {
   if((!options.instance && !options.name) || (options.instance && instance.InstanceId.toLowerCase().includes(options.instance.toLowerCase())) || (options.name && instance.Name.toLowerCase().includes(options.name.toLowerCase()))) {
-    if(JSON.stringify(instance).toLowerCase().includes(options.search.toLowerCase())) {
-      //Pull Environment Tag
-      const environment = instance.Tags.filter(tag => tag.Key === 'Env').length > 0 ? instance.Tags.filter(tag => tag.Key === 'Env')[0].Value  : 'Unknown'
-      const managed = instance.Tags.filter(tag => tag.Key === 'ManagedBy').length > 0 ? instance.Tags.filter(tag => tag.Key === 'ManagedBy')[0].Value : 'No';
+    if(JSON.stringify(instance).replace(/["]+/g, '').toLowerCase().includes(options.search.toLowerCase())) {
 
       if (options.volumes) {
         //Get all block devices
-        const blockDevices = instance.blockdevices;
+        const blockDevices = instance.Volumes;
         blockDevices.forEach(disk => {
-          process.stdout.write(`${instance.Account}\t ${instance.AccountID}\t ${environment}\t ${managed}\t ${instance.AZ}\t ${instance.Name}\t ${instance.InstanceId}\t ${disk.DeviceName}\t ${disk.Ebs.VolumeId}\t ${disk.Ebs.AttachTime} \n`)  
+          process.stdout.write(`${instance.Account}\t ${instance.AccountID}\t ${instance.AZ}\t ${instance.Name}\t ${instance.InstanceId}\t ${disk.DeviceName}\t ${disk.VolumeId}\t ${disk.AttachTime}\t ${disk.Size}\t ${disk.VolumeType}\t ${disk.Iops} \n`)  
         })
         
       } else if (options.securitygroups) {
         //Get Security Groups
         const securityGroups = instance.securityGroups
         securityGroups.forEach(sg => {
-          process.stdout.write(`${instance.Account}\t ${instance.AccountID}\t ${environment}\t ${managed}\t  ${instance.AZ}\t ${instance.Name}\t ${instance.InstanceId}\t ${instance.VPC}\t ${sg.GroupName}\t ${sg.GroupId} \n`)
+          process.stdout.write(`${instance.Account}\t ${instance.AccountID}\t ${instance.AZ}\t ${instance.Name}\t ${instance.InstanceId}\t ${instance.VPC}\t ${sg.GroupName}\t ${sg.GroupId} \n`)
         })
 
-      } else if (options.detailed) {
-        process.stdout.write(JSON.stringify(instance,null,2))
+      } else if (options.raw) {
+        //Capture instance for JSON output so we can output as a JSON array once all instances are found
+        results.push(instance);
       } else {
-        process.stdout.write(`${instance.Account}\t ${instance.AccountID}\t ${environment}\t ${managed}\t  ${instance.AZ}\t ${instance.Name}\t ${instance.InstanceId}\t ${instance.Ip}\t ${instance.Platform}\t ${instance.InstanceType}\n`);
+        process.stdout.write(`${instance.Account}\t ${instance.AccountID}\t ${instance.AZ}\t ${instance.Name}\t ${instance.InstanceId}\t ${instance.Ip}\t ${instance.Platform}\t ${instance.InstanceType} \n`);
       }     
     }
   }
 });
+
+if (options.raw) {
+  process.stdout.write(JSON.stringify(results, null, 2));
+  // process.stdout.write(JSON.stringify(results[0]).replace(/["]+/g, ''))
+}
+

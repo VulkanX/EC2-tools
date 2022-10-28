@@ -1,5 +1,6 @@
 node_modules
-*.config.json
-instancelist.json
+*config.json
+*instancelist.json
+*awsdata.json
 *.tsv
 .DS_Store
