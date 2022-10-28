@@ -29,7 +29,7 @@ const options = program.opts();
 
 //Generate Header
 if (options.volumes) {
-  process.stdout.write(`Account\t AccountID\t Environment\t Managed\t AZ\t Server\t InstanceID\t Device\t VolumeID\t AttachTime\n`)
+  process.stdout.write(`Account\t AccountID\t Environment\t Managed\t AZ\t Server\t InstanceID\t Device\t VolumeID\t AttachTime\t Size\t Type\t IOPS\t \n`)
 } else if (options.securitygroups) {
   process.stdout.write(`Account\t AccountID\t Environment\t Managed\t AZ\t Server\t InstanceID\t VPC\t SG Name\t SG ID\n`)
 } else if (options.raw) {
@@ -47,9 +47,9 @@ instances.forEach(instance => {
 
       if (options.volumes) {
         //Get all block devices
-        const blockDevices = instance.volumes;
+        const blockDevices = instance.Volumes;
         blockDevices.forEach(disk => {
-          process.stdout.write(`${instance.Account}\t ${instance.AccountID}\t ${instance.AZ}\t ${instance.Name}\t ${instance.InstanceId}\t ${disk.DeviceName}\t ${disk.Ebs.VolumeId}\t ${disk.Ebs.AttachTime} \n`)  
+          process.stdout.write(`${instance.Account}\t ${instance.AccountID}\t ${instance.AZ}\t ${instance.Name}\t ${instance.InstanceId}\t ${disk.DeviceName}\t ${disk.VolumeId}\t ${disk.AttachTime}\t ${disk.Size}\t ${disk.VolumeType}\t ${disk.Iops} \n`)  
         })
         
       } else if (options.securitygroups) {

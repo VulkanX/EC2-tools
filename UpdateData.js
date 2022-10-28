@@ -44,9 +44,6 @@ getUserData = async (requests) => {
 getVolumeData = async (requests) => {
   return Promise.all(requests).then((data) => {
     data[0].Volumes.forEach((volume) => {
-      console.log(JSON.stringify(volume,null,2));
-      console.log(volume);
-
       let instanceId = volume.Attachments[0].InstanceId;
       let InstanceIndex = InstanceList.findIndex(x => x.InstanceId === instanceId);
       InstanceList[InstanceIndex].Volumes.push({
@@ -61,6 +58,7 @@ getVolumeData = async (requests) => {
         CreationTime: volume.CreateTime
       });
     });
+    console.log('Volume Data collected -- ' + volume.Attachments[0].InstanceId);
   });
 }
 
@@ -145,9 +143,9 @@ getInstances = async () => {
           });
     
           //Get the userdata from the AWS API
-          // const userdata = await ec2.send(getUserData);
+          const userdata = await ec2.send(getUserData);
           instanceRequests.push(ec2.send(getUserDataCmd));
-          if(instanceRequests.length >= 99) {
+          if(instanceRequests.length >= 25) {
             await getUserData(instanceRequests);
             instanceRequests = [];
           }
@@ -159,7 +157,7 @@ getInstances = async () => {
 
           //Get the volume data from the AWS API
           volumeRequests.push(ec2.send(getVolumeDataCmd));
-          if(volumeRequests.length >= 99) {
+          if(volumeRequests.length >= 25) {
             await getVolumeData(volumeRequests);
             volumeRequests = [];
           }
@@ -186,21 +184,21 @@ getInstances = async () => {
 
 generateStatusInfo();
 
-const statusTimer = setInterval(() => {
-  process.stdout.write(`\n EC2-Tools Scan Status: \n`);
-  scanStatus.forEach((status) => {
-    process.stdout.write(`\t${status.account}\t ${status.region}\t\t ${status.status}\n`);
-  })
+// const statusTimer = setInterval(() => {
+//   process.stdout.write(`\n EC2-Tools Scan Status: \n`);
+//   scanStatus.forEach((status) => {
+//     process.stdout.write(`\t${status.account}\t ${status.region}\t\t ${status.status}\n`);
+//   })
 
-  if(isScanning) {
-    process.stdout.moveCursor(0, -1 * (scanStatus.length + 2));
-  } else { 
-    process.stdout.write(`\n Scan Completed`);
-    process.stdout.write(`\n ${InstanceList.length} Instances found`);
-    process.stdout.write(`\n Scan Results saved to awsdata.json!`);
-    statusTimer.unref();
-  }
-}, 500);
+//   if(isScanning) {
+//     process.stdout.moveCursor(0, -1 * (scanStatus.length + 2));
+//   } else { 
+//     process.stdout.write(`\n Scan Completed`);
+//     process.stdout.write(`\n ${InstanceList.length} Instances found`);
+//     process.stdout.write(`\n Scan Results saved to awsdata.json!`);
+//     statusTimer.unref();
+//   }
+// }, 500);
 
 
 //Pull all regions within config for all accounts
