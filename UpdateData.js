@@ -282,21 +282,21 @@ getInstances = async () => {
 
 generateStatusInfo();
 
-// const statusTimer = setInterval(() => {
-//   process.stdout.write(`\n EC2-Tools Scan Status: \n`);
-//   scanStatus.forEach((status) => {
-//     process.stdout.write(`\t${status.account}\t ${status.region}\t\t ${status.status}\n`);
-//   })
+const statusTimer = setInterval(() => {
+  process.stdout.write(`\n EC2-Tools Scan Status: \n`);
+  scanStatus.forEach((status) => {
+    process.stdout.write(`\t${status.account}\t ${status.region}\t\t ${status.status}\n`);
+  })
 
-//   if(isScanning) {
-//     process.stdout.moveCursor(0, -1 * (scanStatus.length + 2));
-//   } else { 
-//     process.stdout.write(`\n Scan Completed`);
-//     process.stdout.write(`\n ${ResourceList.length} Resources found`);
-//     process.stdout.write(`\n Scan Results saved to awsdata.json!`);
-//     statusTimer.unref();
-//   }
-// }, 500);
+  if(isScanning) {
+    process.stdout.moveCursor(0, -1 * (scanStatus.length + 2));
+  } else { 
+    process.stdout.write(`\n Scan Completed`);
+    process.stdout.write(`\n ${ResourceList.length} Resources found`);
+    process.stdout.write(`\n Scan Results saved to awsdata.json!`);
+    statusTimer.unref();
+  }
+}, 500);
 
 
 //Pull all regions within config for all accounts
