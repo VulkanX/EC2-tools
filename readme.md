@@ -1,4 +1,6 @@
 # EC2 Quick Search Tool
+## NOTE
+Search is currently Broken due to the additions of multiple resource types and changes to the main JSON data structure
 ## What
 Account to pull EC2 info for multiple accounts, multiple regions based on configurations and cache the results in a local json file for processing or querying from other scripts
 ## Tools
@@ -24,31 +26,22 @@ Example Config File, Currently this uses the ID, Secret, and Token from the AWS 
 {
   "Accounts": [
     {
-      "Name": "DevTest- 1234",
-      "FriendlyName": "DevTest",
-      "Account": "",
-      "AWS_ID":"" ,
-      "AWS_Secret": "",
-      "AWS_Token": "",
-      "Regions": ["us-east-1", "us-east-2", "eu-central-1", "af-south-1", "ap-southeast-1"]
-    },
-    {
-      "Name": "Production - 4321",
+      "Name": "Production - 1234-1234-1234",
       "FriendlyName": "Production",
-      "Account": "",
+      "Account": "1234-1234-1234",
       "AWS_ID":"" ,
       "AWS_Secret": "",
       "AWS_Token": "",
-      "Regions": ["us-east-1", "us-east-2", "eu-central-1", "af-south-1", "ap-southeast-1"]
+      "Regions": ["us-east-1", "us-east-2", "ca-central-1"]
     },
     {
-      "Name": "Shared Services - 6789",
-      "FriendlyName": "Shared Services",
+      "Name": "Development - 1234-1234-1234",
+      "FriendlyName": "Account 2",
       "Account": "",
       "AWS_ID":"" ,
       "AWS_Secret": "",
       "AWS_Token": "",
-      "Regions": ["us-east-1", "us-east-2", "eu-central-1", "af-south-1", "ap-southeast-1"]
+      "Regions": ["us-east-1", "us-east-2", "eu-central-1", "ca-central-1"]
     }
   ]
 }
