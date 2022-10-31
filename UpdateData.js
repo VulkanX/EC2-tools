@@ -283,7 +283,7 @@ getInstances = async () => {
 generateStatusInfo();
 
 const statusTimer = setInterval(() => {
-  process.stdout.write(`\n EC2-Tools Scan Status: \n`);
+  process.stdout.write(`\n AWSResource Scanner Scan Status: \n`);
   scanStatus.forEach((status) => {
     process.stdout.write(`\t${status.account}\t ${status.region}\t\t ${status.status}\n`);
   })
